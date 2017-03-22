@@ -1,0 +1,16 @@
+{
+  "name": "customer-info-lambda",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "dynogels": "^7.1.0",
+    "joi": "^10.3.0",
+    "jsonwebtoken": "^7.3.0"
+  }
+}
