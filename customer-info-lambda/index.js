@@ -1,7 +1,7 @@
 
 var jwt = require('jsonwebtoken');
 var User = require('./models/user.js');
-
+var Joi = require('joi');
 exports.handler = function(event, context, callback) {
     console.log('handler event: ' + JSON.stringify(event));
     console.log('handler context: ' + JSON.stringify(context));
@@ -40,21 +40,21 @@ function getUser(event, callback){
 
 function createUser(event, callback){
 
-	if(!event.username || !event.password){
+	if(!event.email || !event.password){
 		var err = new Error('400 Misising field for user');
 		callback(err, null);
 	}
 	console.log("creating user");
 
 	User.create({
-		username : event.username,
+		email : event.email,
 		password : event.password
 	}, {
 		overwrite:false
 	}, function (err, user){
 
 		if(!err){
-			console.log("user " + user.username + " created");
+			console.log("user " + user.email + " created");
 			callback(null, "Custumer created");
 
 		} else{ 
@@ -68,26 +68,35 @@ function createUser(event, callback){
 
 function loginUser(event, callback){
 
-	if(!event.username || !event.password){
+	if(!event.email || !event.password){
 		var err = new Error('400 Misising field for user login');
 		callback(err, null);
 	}
 
-    User.get(event.username, function(err, user){
-    	if(err){
-    		callback("500 User table query error", null);
-    	} else{
-    		if(!user){
-    			callback("401 User does not exist", null);
-    		}else if(user.attrs.password != event.password){
-    			console.log(user);
-    			callback("401 Wrong password", null);
-    		}else{
-    			callback(null, { jsonwebtoken: jwt.sign({username: user.attrs.username}, 'secret')});
-    		}
-    		callback("shouldn't be here", null);
 
-    	}
+    Joi.validate(event.email, Joi.string().email().required(), function (err, value) { 
+
+        if(err){
+            callback("401 email validation error", null);
+        } else{
+
+            User.get(event.email, function(err, user){
+                if(err){
+                    console.log(err);
+                    callback("500 User table query error", null);
+                } else{
+                    if(!user){
+                        callback("401 User does not exist", null);
+                    }else if(user.attrs.password != event.password){
+                        console.log(user);
+                        callback("401 Wrong password", null);
+                    }else{
+                        callback(null, { jsonwebtoken: jwt.sign({email: user.attrs.email}, 'secret')});
+                    }
+                }
+            });
+        }
+
     });
 
 

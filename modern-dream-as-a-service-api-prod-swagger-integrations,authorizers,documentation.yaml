@@ -1,7 +1,7 @@
 ---
 swagger: "2.0"
 info:
-  version: "2017-03-22T22:37:04Z"
+  version: "2017-03-23T19:49:57Z"
   title: "modern-dream-as-a-service-api"
 host: "fbhkc2kin1.execute-api.us-east-1.amazonaws.com"
 basePath: "/prod"
@@ -14,24 +14,26 @@ paths:
       - "application/json"
       produces:
       - "application/json"
+      parameters:
+      - name: "Authorization"
+        in: "header"
+        required: false
+        type: "string"
       responses:
         200:
           description: "200 response"
           schema:
-            $ref: "#/definitions/CustomerGetReturnModel"
-          headers:
-            Access-Control-Allow-Origin:
-              type: "string"
+            $ref: "#/definitions/Empty"
+      security:
+      - ApiAuthorizer: []
       x-amazon-apigateway-integration:
         responses:
           default:
             statusCode: "200"
-            responseParameters:
-              method.response.header.Access-Control-Allow-Origin: "'*'"
         requestTemplates:
           application/json: "{\n    \"operation\" : \"read\"\n}"
         uri: "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:860561113986:function:customer-info-lambda/invocations"
-        passthroughBehavior: "never"
+        passthroughBehavior: "when_no_templates"
         httpMethod: "POST"
         contentHandling: "CONVERT_TO_TEXT"
         type: "aws"
@@ -40,6 +42,12 @@ paths:
       - "application/json"
       produces:
       - "application/json"
+      parameters:
+      - in: "body"
+        name: "CustomerPostRequestModel"
+        required: true
+        schema:
+          $ref: "#/definitions/CustomerPostRequestModel"
       responses:
         200:
           description: "200 response"
@@ -62,11 +70,6 @@ paths:
             statusCode: "200"
             responseParameters:
               method.response.header.Access-Control-Allow-Origin: "'*'"
-          .*400.*:
-            statusCode: "400"
-            responseTemplates:
-              application/json: "#set($inputRoot = $input.path('$'))\n{\n  \"message\"\
-                \ : $input.json('$.errorMessage')\n}"
         requestTemplates:
           application/json: "#set($inputRoot = $input.path('$'))\n{\n  \"operation\"\
             \ : \"create\",\n  \"username\" : $input.json('username'),\n  \"password\"\
@@ -177,6 +180,16 @@ paths:
           application/json: "{\"statusCode\": 200}"
         passthroughBehavior: "when_no_match"
         type: "mock"
+securityDefinitions:
+  ApiAuthorizer:
+    type: "apiKey"
+    name: "Authorization"
+    in: "header"
+    x-amazon-apigateway-authtype: "custom"
+    x-amazon-apigateway-authorizer:
+      authorizerResultTtlInSeconds: 300
+      authorizerUri: "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:860561113986:function:customer-api-authorizer-lambda/invocations"
+      type: "token"
 definitions:
   Empty:
     type: "object"
@@ -187,15 +200,14 @@ definitions:
       message:
         type: "string"
     title: "Error Schema"
-  CustomerGetReturnModel:
+  CustomerPostRequestModel:
     type: "object"
+    required:
+    - "password"
+    - "username"
     properties:
-      items:
-        type: "array"
-        items:
-          type: "object"
-          properties:
-            password:
-              type: "string"
-            username:
-              type: "string"
+      username:
+        type: "string"
+      password:
+        type: "string"
+    title: "customer"
