@@ -1,7 +1,7 @@
 ---
 swagger: "2.0"
 info:
-  version: "2017-03-23T19:49:57Z"
+  version: "2017-03-28T22:41:48Z"
   title: "modern-dream-as-a-service-api"
 host: "fbhkc2kin1.execute-api.us-east-1.amazonaws.com"
 basePath: "/prod"
@@ -23,7 +23,7 @@ paths:
         200:
           description: "200 response"
           schema:
-            $ref: "#/definitions/Empty"
+            $ref: "#/definitions/CustomerGetReturnModel"
       security:
       - ApiAuthorizer: []
       x-amazon-apigateway-integration:
@@ -72,8 +72,8 @@ paths:
               method.response.header.Access-Control-Allow-Origin: "'*'"
         requestTemplates:
           application/json: "#set($inputRoot = $input.path('$'))\n{\n  \"operation\"\
-            \ : \"create\",\n  \"username\" : $input.json('username'),\n  \"password\"\
-            \ : $input.json('password')\n}"
+            \ : \"create\",\n  \"email\" : $input.json('email'),\n  \"password\" :\
+            \ $input.json('password')\n}"
         uri: "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:860561113986:function:customer-info-lambda/invocations"
         passthroughBehavior: "never"
         httpMethod: "POST"
@@ -108,8 +108,35 @@ paths:
           application/json: "{\"statusCode\": 200}"
         passthroughBehavior: "when_no_match"
         type: "mock"
-  /login:
-    post:
+  /customers/verify:
+    get:
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "cipher"
+        in: "query"
+        required: false
+        type: "string"
+      responses:
+        200:
+          description: "200 response"
+          schema:
+            $ref: "#/definitions/Empty"
+      x-amazon-apigateway-integration:
+        responses:
+          default:
+            statusCode: "200"
+        requestTemplates:
+          application/json: "{\n    \"operation\" : \"verify\",\n    \"cipher\" :\
+            \ \"$input.params('cipher')\"\n}"
+        uri: "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:860561113986:function:customer-info-lambda/invocations"
+        passthroughBehavior: "never"
+        httpMethod: "POST"
+        contentHandling: "CONVERT_TO_TEXT"
+        type: "aws"
+    options:
       consumes:
       - "application/json"
       produces:
@@ -119,6 +146,42 @@ paths:
           description: "200 response"
           schema:
             $ref: "#/definitions/Empty"
+          headers:
+            Access-Control-Allow-Origin:
+              type: "string"
+            Access-Control-Allow-Methods:
+              type: "string"
+            Access-Control-Allow-Headers:
+              type: "string"
+      x-amazon-apigateway-integration:
+        responses:
+          default:
+            statusCode: "200"
+            responseParameters:
+              method.response.header.Access-Control-Allow-Methods: "'DELETE,GET,HEAD,OPTIONS,PATCH,POST,PUT'"
+              method.response.header.Access-Control-Allow-Headers: "'Content-Type,Authorization,X-Amz-Date,X-Api-Key,X-Amz-Security-Token'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+        requestTemplates:
+          application/json: "{\"statusCode\": 200}"
+        passthroughBehavior: "when_no_match"
+        type: "mock"
+  /login:
+    post:
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - in: "body"
+        name: "CustomerLoginRequestModel"
+        required: true
+        schema:
+          $ref: "#/definitions/CustomerLoginRequestModel"
+      responses:
+        200:
+          description: "200 response"
+          schema:
+            $ref: "#/definitions/CustomerLoginReturnModel"
           headers:
             Access-Control-Allow-Origin:
               type: "string"
@@ -144,8 +207,8 @@ paths:
                 \ : $input.json('$.errorMessage')\n}"
         requestTemplates:
           application/json: "#set($inputRoot = $input.path('$'))\n{\n  \"operation\"\
-            \ : \"login\",\n  \"password\" : $input.json('password'),\n  \"username\"\
-            \ :  $input.json('username')\n}"
+            \ : \"login\",\n  \"password\" : $input.json('password'),\n  \"email\"\
+            \ :  $input.json('email')\n}"
         uri: "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:860561113986:function:customer-info-lambda/invocations"
         passthroughBehavior: "never"
         httpMethod: "POST"
@@ -191,6 +254,13 @@ securityDefinitions:
       authorizerUri: "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:860561113986:function:customer-api-authorizer-lambda/invocations"
       type: "token"
 definitions:
+  CustomerLoginRequestModel:
+    type: "object"
+    properties:
+      password:
+        type: "string"
+      email:
+        type: "string"
   Empty:
     type: "object"
     title: "Empty Schema"
@@ -203,11 +273,28 @@ definitions:
   CustomerPostRequestModel:
     type: "object"
     required:
+    - "email"
     - "password"
-    - "username"
     properties:
-      username:
+      email:
         type: "string"
       password:
         type: "string"
     title: "customer"
+  CustomerGetReturnModel:
+    type: "object"
+    properties:
+      items:
+        type: "array"
+        items:
+          type: "object"
+          properties:
+            password:
+              type: "string"
+            email:
+              type: "string"
+  CustomerLoginReturnModel:
+    type: "object"
+    properties:
+      jsonwebtoken:
+        type: "string"
