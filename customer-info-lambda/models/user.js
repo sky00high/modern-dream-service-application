@@ -6,6 +6,7 @@ var User = dynogels.define('User', {
   schema : {
     email : Joi.string().email(),
     password : Joi.string().min(3).max(50).required(),
+    verified: Joi.boolean()
   }
 });
 
