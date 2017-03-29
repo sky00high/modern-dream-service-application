@@ -1,0 +1,27 @@
+{
+	"operation" : "create",
+	"email" : "test@test.com",
+	"password" : "123"
+}
+
+
+{
+	"email" : "test@test.com",
+	"password" : "123"
+}
+
+  \"operation\" : \"create\",\"password\" : $util.escapeJavaScript($input.json('password')),\"email\" :  $util.escapeJavaScript($input.json('email'))
+
+
+  {
+  "operation" : "create",
+  "password" : "lalalalala",
+  "email" : "awefawefaew@fwaefe.com"
+}
+
+
+{ 
+        "operation" : "login",
+        "password" : "$input.json('password')",
+        "email" :  "$input.json('email')"
+    },

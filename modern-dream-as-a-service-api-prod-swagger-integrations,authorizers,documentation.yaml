@@ -1,7 +1,7 @@
 ---
 swagger: "2.0"
 info:
-  version: "2017-03-28T22:41:48Z"
+  version: "2017-03-29T03:56:37Z"
   title: "modern-dream-as-a-service-api"
 host: "fbhkc2kin1.execute-api.us-east-1.amazonaws.com"
 basePath: "/prod"
@@ -24,12 +24,17 @@ paths:
           description: "200 response"
           schema:
             $ref: "#/definitions/CustomerGetReturnModel"
+          headers:
+            Access-Control-Allow-Origin:
+              type: "string"
       security:
       - ApiAuthorizer: []
       x-amazon-apigateway-integration:
         responses:
           default:
             statusCode: "200"
+            responseParameters:
+              method.response.header.Access-Control-Allow-Origin: "'*'"
         requestTemplates:
           application/json: "{\n    \"operation\" : \"read\"\n}"
         uri: "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:860561113986:function:customer-info-lambda/invocations"
@@ -65,19 +70,21 @@ paths:
           schema:
             $ref: "#/definitions/Error"
       x-amazon-apigateway-integration:
+        credentials: "arn:aws:iam::860561113986:role/APIGatewayToStepFunctions"
         responses:
           default:
             statusCode: "200"
             responseParameters:
               method.response.header.Access-Control-Allow-Origin: "'*'"
         requestTemplates:
-          application/json: "#set($inputRoot = $input.path('$'))\n{\n  \"operation\"\
-            \ : \"create\",\n  \"email\" : $input.json('email'),\n  \"password\" :\
-            \ $input.json('password')\n}"
-        uri: "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:860561113986:function:customer-info-lambda/invocations"
+          application/json: "{\r\n   \"input\":  \"  {\\\"operation\\\" : \\\"create\\\
+            \",\\\"password\\\" : $util.escapeJavaScript($input.json('password')),\\\
+            \"email\\\" :  $util.escapeJavaScript($input.json('email'))}\",\r\n  \
+            \  \"stateMachineArn\": \"arn:aws:states:us-east-1:860561113986:stateMachine:CustomerCreationStateMachinev1\"\
+            \r\n}"
+        uri: "arn:aws:apigateway:us-east-1:states:action/StartExecution"
         passthroughBehavior: "never"
         httpMethod: "POST"
-        contentHandling: "CONVERT_TO_TEXT"
         type: "aws"
     options:
       consumes:
@@ -187,8 +194,14 @@ paths:
               type: "string"
         400:
           description: "400 response"
+          headers:
+            Access-Control-Allow-Origin:
+              type: "string"
         401:
           description: "401 response"
+          headers:
+            Access-Control-Allow-Origin:
+              type: "string"
       x-amazon-apigateway-integration:
         responses:
           default:
@@ -197,11 +210,15 @@ paths:
               method.response.header.Access-Control-Allow-Origin: "'*'"
           .*401.*:
             statusCode: "401"
+            responseParameters:
+              method.response.header.Access-Control-Allow-Origin: "'*'"
             responseTemplates:
               application/json: "#set($inputRoot = $input.path('$'))\n{\n  \"message\"\
                 \ : $input.json('$.errorMessage')\n}"
           .*400.*:
             statusCode: "400"
+            responseParameters:
+              method.response.header.Access-Control-Allow-Origin: "'*'"
             responseTemplates:
               application/json: "#set($inputRoot = $input.path('$'))\n{\n  \"message\"\
                 \ : $input.json('$.errorMessage')\n}"
@@ -250,8 +267,8 @@ securityDefinitions:
     in: "header"
     x-amazon-apigateway-authtype: "custom"
     x-amazon-apigateway-authorizer:
-      authorizerResultTtlInSeconds: 300
       authorizerUri: "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:860561113986:function:customer-api-authorizer-lambda/invocations"
+      authorizerResultTtlInSeconds: 300
       type: "token"
 definitions:
   CustomerLoginRequestModel:

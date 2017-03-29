@@ -2,29 +2,40 @@
 var jwt = require('jsonwebtoken');
 var User = require('./models/user.js');
 var Joi = require('joi');
-exports.handler = function(event, context, callback) {
-    console.log('handler event: ' + JSON.stringify(event));
-    console.log('handler context: ' + JSON.stringify(context));
-    
-    var operation = event.operation;
 
-    switch (operation) {
-        case ('read'):
-            getUser(event, callback);
-            break;
-        case ('create'):
-            createUser(event, callback);
-            break;
-        case ('login'):
-        	loginUser(event, callback);
-        	break;
-        case ('verify'):
-            verifyUser(event, callback);
-            break;
-        default:
-            var err = new Error('405 Unrecognized operation');
-            err.name = 'Unrecognized operation "${event.operation}"';
-            callback(err, null);
+
+function CustomerInfoError(message) {
+   this.name = "CustomerInfoError";
+   this.message = message;
+}
+CustomerInfoError.prototype = new Error();
+
+exports.handler = function(event, context, callback) {
+    try{
+        console.log('handler event: ' + JSON.stringify(event));
+        console.log('handler context: ' + JSON.stringify(context));
+        
+        var operation = event.operation;
+
+        switch (operation) {
+            case ('read'):
+                getUser(event, callback);
+                break;
+            case ('create'):
+                createUser(event, callback);
+                break;
+            case ('login'):
+            	loginUser(event, callback);
+            	break;
+            case ('verify'):
+                verifyUser(event, callback);
+                break;
+            default:
+                var err = new CustomerInfoError('405 Unrecognized operation Error');
+                callback(err, null);
+        }
+    } catch (err){
+        callback(err, null);
     }
 };
 
@@ -33,7 +44,7 @@ exports.handler = function(event, context, callback) {
 function getUser(event, callback){
 	User.scan().exec(function(err, resp){
 		if (err){
-			var err = new Error("500 User table access error");
+			var err = new CustomerInfoError("500 User table access Error");
 			callback(err, null);
 		} else{
 			callback(null, JSON.stringify(resp.Items));
@@ -44,7 +55,7 @@ function getUser(event, callback){
 function createUser(event, callback){
 
 	if(!event.email || !event.password){
-		var err = new Error('400 Misising field for user');
+		var err = new CustomerInfoError('400 Missing Field Error');
 		callback(err, null);
 	}
 	console.log("creating user");
@@ -59,11 +70,12 @@ function createUser(event, callback){
 
 		if(!err){
 			console.log("user " + user.email + " created");
-			callback(null, "Custumer created");
+			callback(null, { "message" : "Customer Created!", "RequestPassthrough" : event});
 
 		} else{ 
 			console.log("user  erred " + JSON.stringify(err));
-			callback("400 User creation failure, detail:"  + JSON.stringify(err), null);
+            var err = new CustomerInfoError("400 User Creation Error, Please make sure your email is valid and password is between 3 to 50 characters");
+			callback(err, null);
 		}
 
 	});

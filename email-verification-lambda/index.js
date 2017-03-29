@@ -22,30 +22,37 @@ var params = {
 
 
 var AWS = require('aws-sdk');
-var crypto = require('crypto');
-var cipher = crypto.createCipher('aes192', 'password');
+
 
 exports.handler = (event, context, callback) => {
-    var ses = new AWS.SES();
-    var email = event.toAddress;
-
-    var encrypted = cipher.update(email,'utf8', 'hex');
-    encrypted += cipher.final('hex');
-
-
-    var link = 'https://fbhkc2kin1.execute-api.us-east-1.amazonaws.com/prod/customers/verify?cipher=' + encrypted;
-    var html = '<!DOCTYPE html>\
-<html>\
-<body>\
-<h1>Please click on the link below to verify your email</h1>\
-<p><a href="' + link + '">' + link '</a>.</p>\
-</body>\
-</html>';
-    params.Destination.ToAddresses[0] = event.toAddress;
-    params.Message.Body.Html.Data = html;
-    ses.sendEmail(params, function(err, data) {
-      if (err) console.log(err, err.stack); // an error occurred
-      else     console.log(data);           // successful response
-    });
+    try{
+        var ses = new AWS.SES();
+        var email = event.email;
+    
+        console.log(email);
+        const crypto = require('crypto');
+        const cipher = crypto.createCipher('aes192', 'password');
+        let encrypted = cipher.update(email,'utf8', 'hex');
+        encrypted += cipher.final('hex');
+    
+    
+        var link = 'https://fbhkc2kin1.execute-api.us-east-1.amazonaws.com/prod/customers/verify?cipher=' + encrypted;
+        var html = '<!DOCTYPE html>\
+    <html>\
+    <body>\
+    <h1>Please click on the link below to verify your email</h1>\
+    <p><a href="' + link + '">' + link + '</a>.</p>\
+    </body>\
+    </html>';
+        params.Destination.ToAddresses[0] = event.email;
+        params.Message.Body.Html.Data = html;
+        ses.sendEmail(params, function(err, data) {
+          if (err) console.log(err, err.stack); // an error occurred
+          else     console.log(data);           // successful response
+        });
+    } catch(err){
+        
+        callback(err, null);
+    }
 
 };

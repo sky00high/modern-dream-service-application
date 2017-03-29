@@ -1,0 +1,67 @@
+{
+  "StartAt": "CustomerCreation",
+  "States": {
+    "CustomerCreation": {
+      "Type": "Task",
+      "Resource": "arn:aws:lambda:us-east-1:860561113986:function:customer-info-lambda",
+      "ResultPath" : "$.RequestPassthrough",
+      "Catch": [
+        {
+          "ErrorEquals": ["CustomerInfoError", "Error"],
+          "Next": "CustomErrorFallback"
+        },
+        {
+          "ErrorEquals": ["States.TaskFailed"],
+          "Next": "ReservedTypeFallback"
+        },
+        {
+          "ErrorEquals": ["States.ALL"],
+          "Next": "CatchAllFallback"
+        }
+      ],
+      "Next" : "Parallel"
+    },
+     "Parallel": {
+      "Type": "Parallel",
+      "End" : true,
+      "Branches": [
+        {
+          "StartAt": "VarifyEmail",
+          "States": {
+             "VarifyEmail": {
+              "Type": "Task",
+              "Resource": "arn:aws:lambda:us-east-1:860561113986:function:email-verification-lambda",
+              "End" : true
+            }
+          }
+        },
+        {
+          "StartAt": "CreateCustomerAccount",
+          "States": {
+            "CreateCustomerAccount": {
+              "Type": "Pass",
+              "Result" : "2222",
+              "End" : true
+            }
+          }
+
+        }
+      ]
+    },
+    "CustomErrorFallback": {
+      "Type": "Fail",
+      "OutputPath" : "$.Cause",
+      "End": true
+    },
+    "ReservedTypeFallback": {
+      "Type": "Pass",
+      "Result": "Something not suppose to happen happend",
+      "End": true
+    },
+    "CatchAllFallback": {
+      "Type": "Pass",
+      "Result": "This is a fallback from a reserved error code",
+      "End": true
+    }
+  }
+}
