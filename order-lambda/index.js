@@ -14,6 +14,7 @@ exports.handler = function(event, context, callback) {
 
         switch (operation) {
             case ('read'):
+                console.log("*** operation : read");
                 getOrders(event, callback);
                 break;
             case ('create'):
@@ -29,9 +30,11 @@ exports.handler = function(event, context, callback) {
 };
 
 function getOrders(event, callback){
-    var userToken = JSON.stringify(event.userToken); 
+    var userToken = event.userToken; 
+    console.log("userToken: " + userToken);
     var userEmail = jwt.verify(userToken, 'secret');
-
+    console.log("userEmail: " + userEmail);
+    
     AWS.config.update({
         region: "us-east-1",
     });
@@ -45,19 +48,19 @@ function getOrders(event, callback){
 
     docClient.scan(params, function(err, data) {
         if (err) {
-            var err = new OrderError("500 Order table access Error");
+            err = new OrderError("500 Order table access Error");
             callback(err, null);
         } else{
             callback(null, data.Items);
         }
-    })；
+    });
 }
 
 function createOrder(event, callback){
     var stripeToken = event.stripeToken;
     var itemID = event.itemID;
 
-    var userToken = JSON.stringify(event.userToken); 
+    var userToken = event.userToken; 
     var userEmail = jwt.verify(userToken, 'secret');
 
     var docClient = new AWS.DynamoDB.DocumentClient();
@@ -86,13 +89,14 @@ function createOrder(event, callback){
 
         docClient.put(params, function(err, data) {
             if (err) {
-                var err = new OrderError("500 Order table access Error");
+                err = new OrderError("500 Order table access Error");
                 callback(err, null);
             } else {
                 return stripe.charges.create({ 
                     amount: 100,
                     currency: "usd",
-                    customer: customer.id, // 这个ID是什么，打印出来看看？
+                    customer: customer.id,
+                    metadata : {orderID : orderID},
                 });
             }
         });
