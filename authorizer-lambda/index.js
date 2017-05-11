@@ -29,6 +29,8 @@ var generatePolicy = function(principalId, effect, resource) {
 exports.handler = function(event, context, callback) {
     console.log('Client token: ' + event.authorizationToken);
     console.log('Method ARN: ' + event.methodArn);
+    console.log('Client event: ' + event);
+    console.log('Client Context: ' + context);
 
     try {
         verifiedJwt = Jwt.verify(event.authorizationToken, 'secret');
