@@ -29,6 +29,10 @@ angular.module('angularRestfulAuth', [
             templateUrl: 'item.html',
             controller: 'ItemCtrl'
         }).
+        when('/orders/:param', {
+            templateUrl: 'order.html',
+            controller: 'OrderCtrl'
+        }).
         when('/confirm', {
             templateUrl: 'confirm.html',
             controller: 'HomeCtrl'
@@ -42,6 +46,8 @@ angular.module('angularRestfulAuth', [
                 'request': function (config) {
                     config.headers = config.headers || {};
                     if ($localStorage.token) {
+                        // console.log("Authorization token:");
+                        // console.log($localStorage.token);
                         config.headers.Authorization = $localStorage.token;
                     }
                     return config;

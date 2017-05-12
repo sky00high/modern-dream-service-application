@@ -50,6 +50,10 @@ angular.module('angularRestfulAuth')
                 $http.get(baseUrl + '/item/' + data.itemID).success(success).error(error)
                 console.log(baseUrl + '/item/' + data.itemID);
             }, 
+            order: function(data, success, error) {
+                $http.get(baseUrl + '/order/' + data.orderID).success(success).error(error)
+                console.log(baseUrl + '/order/' + data.orderID);
+            },
             transaction: function(data, success, error) {
                 $http.post(baseUrl + '/order', data).success(success).error(error)
             }, 

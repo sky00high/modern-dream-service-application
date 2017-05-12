@@ -70,13 +70,35 @@ angular.module('angularRestfulAuth')
         })
 }])
 
+.controller('OrderCtrl', ['$rootScope', '$scope', '$routeParams', '$location', 'Main', function($rootScope, $scope, $routeParams, $location, Main) {
+        var param = $routeParams.param;
+        var formData = {
+            orderID: param
+        }
+
+        console.log(" orderID: " + param);
+
+        Main.order(formData, function(res) {
+            console.log("** res **");
+            console.log(res);
+            $scope.itemDetails = res;
+        }, function() {
+            console.log(" not here 2 ?");
+            $rootScope.error = 'Failed to get details';
+        });
+
+        console.log(" not here 3 ?");
+
+}])
+
 
 .controller('ItemCtrl', ['$rootScope', '$scope', '$routeParams', '$location', 'Main', function($rootScope, $scope, $routeParams, $location, Main) {
         var param = $routeParams.param;
         var formData = {
             itemID: param
         }
-        Main.item(formData, function(res) {
+
+        Main.item(formData, function(res) {    
             $scope.itemDetails = res;
         }, function() {
             $rootScope.error = 'Failed to get details';
@@ -95,6 +117,8 @@ angular.module('angularRestfulAuth')
                 }
 
                 Main.transaction(formData, function(res) {
+                    console.log("This is the return source URL:");
+                    console.log(res);
                     $location.path('/confirm');
                 }, function() {
                     $rootScope.error = 'Failed to make transaction';
@@ -102,3 +126,5 @@ angular.module('angularRestfulAuth')
             }
         };
 }]);
+
+

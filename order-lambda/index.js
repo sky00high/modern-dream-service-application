@@ -53,15 +53,20 @@ function getOrders(event, callback) {
             context.done('error', error);
         }
         if (data.Payload) {
+
+            console.log(data);
+
             var payload = JSON.parse(data.Payload);
+            console.log("payload");
+            console.log(payload);
 
-            var list = payload.items;
+            var list = payload.Item;
             
-
             result = {items : list,
                       email : event.userEmail
                      };
-
+            console.log("* result *");
+            console.log(result);
             callback(null, result);
             // callback(null, data.Payload.items);
         }
@@ -84,9 +89,13 @@ function createOrder(event, callback){
     });
 
     var date = new Date();
-    var orderID = (+date).toString(36);
+    console.log("date: " + date);
+    var orderID = Date.now().toString();
+    console.log("orderID: " + orderID);
+    // var orderID = (+date).toString(36);
     event.orderID = orderID;
     event.date = date;
+    
     console.log("**** new even *****");
     console.log(event);
 
@@ -108,9 +117,13 @@ function createOrder(event, callback){
             }
 
             writeOrdersDatabase(event, callback);
-            // callback(null, data.Payload.items);
+
+            var resourceURL = "http://angularmodern.s3-website-us-east-1.amazonaws.com/#/orders/" + orderID;
+            console.log("resourceURL: "+ resourceURL);
+            callback(null, resourceURL);
         }
     });
+}
 
 function writeOrdersDatabase(event, callback) {
     var aws = require('aws-sdk');
@@ -128,9 +141,16 @@ function writeOrdersDatabase(event, callback) {
             console.log("======== a error===");
             context.done('error', error);
         }
+
+        console.log("data return");
+        console.log(data);
+
         if (data.Payload) {
-            var payload = JSON.parse(data.Payload);
-            callback(null, "end");
+            // 这里返回了orderID吗？？
+            // var orderID = JSON.parse(data.Payload);
+            // var resourceURL = "http://angularmodern.s3-website-us-east-1.amazonaws.com/#/orders/" + orderID;
+            // console.log("resourceURL: "+ resourceURL);
+            // callback(null, resourceURL);
             // callback(null, data.Payload.items);
         }
     });
@@ -175,7 +195,6 @@ function writeOrdersDatabase(event, callback) {
     //     });
     // });
     
-}
 
 
 

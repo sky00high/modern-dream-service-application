@@ -45,25 +45,53 @@ function getOrders(event, callback) {
     });
 
     var docClient = new AWS.DynamoDB.DocumentClient();
-    var params = {
-        TableName: "orders",
-        FilterExpression : 'userEmail = :val', 
-        ExpressionAttributeValues : {':val' : userEmail}
-    };
+    var orderID = event.orderID;
+    console.log(typeof(orderID));
+    console.log("orderID:" + orderID);
+    var orderIDstring = orderID.toString();
 
-    docClient.scan(params, function(err, data) {
-        if (err) {
-            err = new OrderError("500 Order table access Error");
-            callback(err, null);
-        } else{
-            console.log("cone into scan result");
-            result = {items : data.Items,
-                      email : userEmail
-                     };
-            console.log(result);
-            callback(null, result);
-        }
-    });
+    if (orderID != null) {// 是不是这么判断的啊
+        console.log("orderID is :" + orderID);
+        var params = {
+            TableName: "orders",
+            Key:{
+                "orderID": orderIDstring
+            }
+        };
+        docClient.get(params, function(err, data) {
+            if (err) {
+                console.log(JSON.stringify(err, undefined, 2));
+                callback(err, (JSON.stringify(err, undefined, 2)));
+            } else {
+                console.log(" successfully get data");
+                console.log(data);
+                console.log(JSON.stringify(data, undefined, 2));
+                callback(null, data);
+            }
+        });
+    } else {
+        console.log("* No orderID *");
+
+        var params = {
+            TableName: "orders",
+            FilterExpression : 'userEmail = :val', 
+            ExpressionAttributeValues : {':val' : userEmail}
+        };
+
+        docClient.scan(params, function(err, data) {
+            if (err) {
+                err = new OrderError("500 Order table access Error");
+                callback(err, null);
+            } else{
+                console.log("cone into scan result");
+                result = {items : data.Items,
+                          email : userEmail
+                         };
+                console.log(result);
+                callback(null, result);
+            }
+        });
+    }
 }
 
 function createOrder(event, callback){
@@ -83,6 +111,8 @@ function createOrder(event, callback){
     };
 
     var orderID = event.orderID;
+    console.log("orderID:" + orderID);
+    console.log("timestamp:" + event.date.toString());
 
     var docClient = new AWS.DynamoDB.DocumentClient();
 
@@ -99,10 +129,12 @@ function createOrder(event, callback){
 
     docClient.put(params, function(err, data) {
         if (err) {
+            console.log(" fail !!!!");
             err = new OrderError("500 Order table access Error");
             callback(err, null);
         } else {
-            return null;
+            console.log(" successed !!!!");
+            callback(null, orderID);
         }
     });
 

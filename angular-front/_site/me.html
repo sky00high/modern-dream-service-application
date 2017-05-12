@@ -1,0 +1,33 @@
+<div class="row" data-ng-controller="MeCtrl">
+    <div class="col-lg-12">
+        <div class="panel panel-primary">
+            <div class="panel-heading">
+                <strong>My Details</strong>
+            </div>
+            <div class="panel-body">
+                <p>My email: {{myDetails.email}}</p>
+            </div>
+        </div>
+        <div class="panel panel-primary">
+            <div class="panel-heading">
+                <strong>My Payment History</strong>
+            </div>
+            <div class="panel-body">
+                <table class = "table" width = "30%" border="1">
+                    <tr>
+                        <th>Item ID</th>
+                        <th>Date</th>
+                        <th>Amount</th>
+                    </tr>
+                    <tr data-ng-repeat='item in myDetails.items'>
+                        <div>
+                            <td align='center'>{{item.itemID}}</td>
+                            <td align='center'>{{item.timestamp}}</td>
+                            <td align='center'>{{item.price}}</td>
+                        </div>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
